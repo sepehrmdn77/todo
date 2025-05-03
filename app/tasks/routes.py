@@ -22,8 +22,12 @@ async def retrieve_task_detail(task_id:int = Path(...,gt=0),db:Session = Depends
     return task_obj
 
 @router.post("/tasks", response_model=TaskResponseSchema)
-async def create_task(db:Session = Depends(get_db)):
-    return {}
+async def create_task(request:TaskCreateSchema ,db:Session = Depends(get_db)):
+    task_obj = TaskModel(**request.model_dump())
+    db.add(task_obj)
+    db.commit()
+    db.refresh(task_obj)
+    return task_obj
 
 @router.put("/tasks/{task_id}", response_model=TaskResponseSchema)
 async def update_task(task_id:int = Path(...,gt=0),db:Session = Depends(get_db)):

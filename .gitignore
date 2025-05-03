@@ -120,3 +120,5 @@ dmypy.json
 .pytype/
 
 cython_debug/
+
+*.db
