@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Path, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from tasks.schemas import *
+from tasks.schemas import * # better not to use *
 from tasks.models import TaskModel
 from sqlalchemy.orm import Session # for creating session
 from core.database import get_db
