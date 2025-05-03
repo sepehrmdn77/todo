@@ -4,6 +4,9 @@ from fastapi import FastAPI
 
 from tasks.routes import router as tasks_routes
 
+from users.routes import router as users_routes
+
+
 tags_metadata = [
     {
         "name": "tasks",
@@ -43,3 +46,5 @@ app = FastAPI(
 )
 
 app.include_router(tasks_routes)
+app.include_router(users_routes)
+
