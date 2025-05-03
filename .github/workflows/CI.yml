@@ -30,6 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update && sudo apt upgrade
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install flake8 pytest
 
