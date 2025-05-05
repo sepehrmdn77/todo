@@ -32,13 +32,16 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install flake8 pytest
-
+  test:  
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - name: Lint code
         run: |
-          flake8 ./app/core/config.py
-          flake8 ./app/core/database.py
-          flake8 ./app/tasks/models.py
-          flake8 ./app/tasks/routes.py
-          flake8 ./app/tasks/schemas.py
-          flake8 ./app/main.py
+          flake8 ./app/core/config.py && pylint ./app/core/config.py
+          flake8 ./app/core/database.py && pylint ./app/core/database.py
+          flake8 ./app/tasks/models.py && pylint ./app/tasks/models.py
+          flake8 ./app/tasks/routes.py && pylint ./app/tasks/routes.py
+          flake8 ./app/tasks/schemas.py && pylint ./app/tasks/schemas.py
+          flake8 ./app/main.py && pylint ./app/main.py
 

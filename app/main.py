@@ -47,4 +47,3 @@ app = FastAPI(
 
 app.include_router(tasks_routes)
 app.include_router(users_routes)
-
