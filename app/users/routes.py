@@ -11,7 +11,16 @@ router = APIRouter(tags=["users"], prefix="/users")
 
 @router.post("/login")
 async def user_login(request: UserLoginSchema, db: Session = Depends(get_db)):
-    return {}
+    if not db.query(UsersModel).filter_by(username=request.username).first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+        )
+
+    user_obj = db.query(UsersModel).filter_by(username=request.username).first()
+    if user_obj.verify_password(request.password):
+        raise HTTPException(status_code=status.HTTP_202_ACCEPTED, detail="uesr logged in successfully")
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="incorrect password")
 
 
 @router.post("/register")
@@ -26,3 +35,4 @@ async def user_register(request: UserRegisterSchema, db: Session = Depends(get_d
     db.commit()
 
     return JSONResponse(content="User registered successfully")
+
