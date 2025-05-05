@@ -33,7 +33,7 @@ class UsersModel(Base):
 
     def hash_password(self, plain_password: str) -> str:
         """Hashing password"""
-        self.password = pwd_context.hash(plain_password)
+        return pwd_context.hash(plain_password)
 
     def verify_password(self, plain_password: str) -> bool:
         """Verifying password"""
