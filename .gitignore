@@ -125,3 +125,7 @@ dmypy.json
 cython_debug/
 
 *.db
+*.sqlite3
+./alembic/
+alembic.ini
+app/alembic
