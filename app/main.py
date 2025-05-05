@@ -31,20 +31,19 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     title="Todo App",
     description="Simple todo app for testing purpose",
-    summary="Deadpool's favorite app. Nuff said.",
+    summary="Remember everything todo...",
     version="0.0.1",
     terms_of_service="http://example.com/terms/",
     contact={
-        "name": "Deadpoolio the Amazing",
-        "url": "http://x-force.example.com/contact/",
-        "email": "dp@x-force.example.com",
+        "name": "Sepehr Maadani",
+        "url": "https://github.com/sepehrmdn77/todo",
+        "email": "sepehrmaadani98@gmail.com",
     },
     license_info={
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+        "name": "MIT License",
+        "url": "https://choosealicense.com/",
     },
 )
 
 app.include_router(tasks_routes)
 app.include_router(users_routes)
-
