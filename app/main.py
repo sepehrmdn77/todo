@@ -1,10 +1,14 @@
+from auth.basic_auth import get_authenticated_user
+
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
 from tasks.routes import router as tasks_routes
 
 from users.routes import router as users_routes
+
+from users.models import UsersModel
 
 
 tags_metadata = [
@@ -47,3 +51,14 @@ app = FastAPI(
 
 app.include_router(tasks_routes)
 app.include_router(users_routes)
+
+
+@app.get("/public", tags=["Auth Test"])
+def public_route():
+    return {"message": "This is a public route"}
+
+
+@app.get("/private", tags=["Auth Test"])
+def private_route(user: UsersModel = Depends(get_authenticated_user)):
+    print(user)
+    return {"message": "This is a private page"}
