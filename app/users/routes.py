@@ -5,6 +5,7 @@ from users.models import UsersModel, TokenModel
 from sqlalchemy.orm import Session  # for creating session
 from core.database import get_db
 from typing import List
+from auth.jwt_auth import generate_access_token, generate_refresh_token
 import secrets
 
 
@@ -28,7 +29,11 @@ async def user_login(request: UserLoginSchema, db: Session = Depends(get_db)):
     db.add(token_obj)
     db.commit()
     db.refresh(token_obj)
-    return JSONResponse(content={"detail":"logged in successfully", "token": token_obj.token})
+    # return JSONResponse(content={"detail":"logged in successfully", "token": token_obj.token})
+    access_token= generate_access_token(user_obj.id)
+    refresh_token= generate_refresh_token(user_obj.id)
+    return JSONResponse(content={"detail":"logged in successfully", "access_token": access_token, "refresh_token": refresh_token})
+
 
 
 @router.post("/register")

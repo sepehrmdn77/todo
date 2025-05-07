@@ -1,4 +1,6 @@
-from auth.basic_auth import get_authenticated_user
+# from auth.basic_auth import get_authenticated_user
+
+from auth.jwt_auth import get_authenticated_user
 
 from contextlib import asynccontextmanager
 
@@ -9,6 +11,8 @@ from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 
 from users.models import UsersModel
+
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 
 tags_metadata = [
@@ -60,10 +64,21 @@ header_scheme = APIKeyHeader(name="x-key")
 def public_route():
     return {"message": "This is a public route"}
 
-@app.get("/private", tags=["Auth Test"]) # Old basic user pass method
-def private_route(user: UsersModel = Depends(get_authenticated_user)):
-    print(user)
+@app.get("/private", tags=["Auth Test"]) # Token authentication
+def private_route(user: HTTPAuthorizationCredentials= Depends(get_authenticated_user)):
+    print(user.username)
+    
     return {"message": "This is a private page"}
+
+# @app.get("/private", tags=["Auth Test"]) # Http authorize
+# def private_route(credentials: HTTPAuthorizationCredentials= Depends(security)):
+#     print(credentials)
+#     return {"message": "This is a private page"}
+
+# @app.get("/private", tags=["Auth Test"]) # Old basic user pass method
+# def private_route(user: UsersModel = Depends(get_authenticated_user)):
+#     print(user)
+#     return {"message": "This is a private page"}
 
 # @app.get("/private", tags=["Auth Test"]) # APIkey Header auth
 # def private_route(api_key = Depends(header_scheme)):
