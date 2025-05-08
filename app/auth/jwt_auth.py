@@ -47,7 +47,7 @@ def get_authenticated_user(
     return None
 
 
-def generate_access_token(user_id: int, expire_in: int = 60 * 5) ->str:
+def generate_access_token(user_id: int, expire_in: int = 60 * 15) ->str:
 
     now = datetime.utcnow()
     payload = {

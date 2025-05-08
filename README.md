@@ -21,3 +21,6 @@ A full-stack ToDo application built with **FastAPI** for the backend, **Flet** f
 - **Testing:** Pytest
 - **CI/CD:** GitHub Actions
 
+## Mock data for test
+
+- **data_gen.py:** Using Faker to generate mock users and tasks to test the DB and functionality
