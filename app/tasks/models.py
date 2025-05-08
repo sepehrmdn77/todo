@@ -25,10 +25,7 @@ class TaskModel(Base):
     is_completed = Column(Boolean, default=False, nullable=False)
     created_date = Column(DateTime, server_default=func.now(), nullable=False)
     updated_date = Column(
-        DateTime,
-        server_default=func.now(),
-        server_onupdate=func.now(),
-        nullable=False
+        DateTime, server_default=func.now(), server_onupdate=func.now(), nullable=False
     )
 
     user = relationship("UsersModel", back_populates="tasks", uselist=False)

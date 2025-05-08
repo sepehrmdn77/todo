@@ -13,11 +13,12 @@ security = HTTPBasic()
 
 
 def get_authenticated_user(
-    credentials: HTTPBasicCredentials= Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)
 ):
-    user_obj = db.query(UsersModel).filter_by(username=credentials.username).one_or_none()
-    if not user_obj: # username check
+    user_obj = (
+        db.query(UsersModel).filter_by(username=credentials.username).one_or_none()
+    )
+    if not user_obj:  # username check
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",

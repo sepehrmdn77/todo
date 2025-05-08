@@ -8,13 +8,15 @@ from fastapi import FastAPI, Depends, Response, Request
 
 from fastapi.security import APIKeyHeader
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from tasks.routes import router as tasks_routes
 
 from users.routes import router as users_routes
 
-from users.models import UsersModel
+from fastapi.security import HTTPAuthorizationCredentials  # , HTTPBearer
 
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+import time
 
 
 tags_metadata = [
@@ -31,6 +33,7 @@ tags_metadata = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Lifespan"""
     print("Application startup")
     yield
     print("Application shutdown")
@@ -61,18 +64,23 @@ app.include_router(users_routes)
 
 header_scheme = APIKeyHeader(name="x-key")
 
+
 @app.get("/public", tags=["Auth Test"])
 def public_route():
     return {"message": "This is a public route"}
 
-@app.get("/private", tags=["Auth Test"]) # Token authentication
-def private_route(user: HTTPAuthorizationCredentials= Depends(get_authenticated_user)):
+
+@app.get("/private", tags=["Auth Test"])  # Token authentication
+def private_route(user: HTTPAuthorizationCredentials = Depends(get_authenticated_user)):
     print(user.username)
-    
+
     return {"message": "This is a private page"}
 
+
 # @app.get("/private", tags=["Auth Test"]) # Http authorize
-# def private_route(credentials: HTTPAuthorizationCredentials= Depends(security)):
+# def private_route(
+# credentials: HTTPAuthorizationCredentials= Depends(security)
+# ):
 #     print(credentials)
 #     return {"message": "This is a private page"}
 
@@ -95,12 +103,31 @@ def private_route(user: HTTPAuthorizationCredentials= Depends(get_authenticated_
 #     print(api_key)
 #     return {"message": "This is a private page"}
 
+
 @app.post("/set-cookie", tags=["Cookie management"])
 def set_cookie(response: Response):
     response.set_cookie(key="test", value="something")
     return {"message": "Cookie has been set successfully"}
 
+
 @app.get("/get-cookie", tags=["Cookie management"])
 def get_cookie(request: Request):
     return {"requested cookie": request.cookies.get("test")}
 
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = time.perf_counter() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

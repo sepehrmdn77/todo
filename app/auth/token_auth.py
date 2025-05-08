@@ -1,6 +1,11 @@
 from fastapi import Depends, HTTPException, status
 
-from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import (
+    HTTPBasic,
+    HTTPBasicCredentials,
+    HTTPBearer,
+    HTTPAuthorizationCredentials,
+)
 
 from users.models import UsersModel, TokenModel
 
@@ -13,10 +18,11 @@ security = HTTPBearer(scheme_name="Token")
 
 
 def get_authenticated_user(
-    credentials: HTTPBasicCredentials= Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)
 ):
-    token_obj = db.query(TokenModel).filter_by(token=credentials.credentials).one_or_none()
+    token_obj = (
+        db.query(TokenModel).filter_by(token=credentials.credentials).one_or_none()
+    )
     if not token_obj:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -19,5 +19,6 @@ class UserRegisterSchema(BaseModel):
             raise ValueError("password doesn't match")
         return confirm_password
 
+
 class UserRefreshTokenSchema(BaseModel):
     token: str = Field(..., description="refresh token of the user")

@@ -16,16 +16,17 @@ def seed_users(db):
     print(f"user created with username: {user.username} and ID: {user.id}")
     return user
 
-def seed_tasks(db,user,count=10):
-    user = db.query(UsersModel).filter_by(id = user.id).first()
+
+def seed_tasks(db, user, count=10):
+    user = db.query(UsersModel).filter_by(id=user.id).first()
     task_list = []
     for _ in range(10):
         task_list.append(
             TaskModel(
-                user_id = user.id,
-                title = fake.sentence(nb_words=6),
-                description = fake.text(),
-                is_completed = fake.boolean()
+                user_id=user.id,
+                title=fake.sentence(nb_words=6),
+                description=fake.text(),
+                is_completed=fake.boolean(),
             )
         )
     db.add_all(task_list)
@@ -35,10 +36,10 @@ def seed_tasks(db,user,count=10):
 
 def main():
     db = SessionLocal()
-    
+
     try:
         user = seed_users(db)
-        seed_tasks(db,user)
+        seed_tasks(db, user)
     finally:
         db.close()
 

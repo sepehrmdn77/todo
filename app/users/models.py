@@ -27,10 +27,7 @@ class UsersModel(Base):
 
     created_date = Column(DateTime, server_default=func.now(), nullable=False)
     updated_date = Column(
-        DateTime,
-        server_default=func.now(),
-        server_onupdate=func.now(),
-        nullable=False
+        DateTime, server_default=func.now(), server_onupdate=func.now(), nullable=False
     )
 
     tasks = relationship("TaskModel", back_populates="user")
