@@ -4,7 +4,9 @@ from auth.jwt_auth import get_authenticated_user
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Response, Request
+
+from fastapi.security import APIKeyHeader
 
 from tasks.routes import router as tasks_routes
 
@@ -56,7 +58,6 @@ app = FastAPI(
 app.include_router(tasks_routes)
 app.include_router(users_routes)
 
-from fastapi.security import APIKeyHeader
 
 header_scheme = APIKeyHeader(name="x-key")
 
@@ -93,3 +94,13 @@ def private_route(user: HTTPAuthorizationCredentials= Depends(get_authenticated_
 # def private_route(api_key = Depends(header_scheme)):
 #     print(api_key)
 #     return {"message": "This is a private page"}
+
+@app.post("/set-cookie", tags=["Cookie management"])
+def set_cookie(response: Response):
+    response.set_cookie(key="test", value="something")
+    return {"message": "Cookie has been set successfully"}
+
+@app.get("/get-cookie", tags=["Cookie management"])
+def get_cookie(request: Request):
+    return {"requested cookie": request.cookies.get("test")}
+
