@@ -19,7 +19,7 @@ from core.config import settings
 
 import jwt
 
-from jwt.exceptions import DecodeError, InvalidSignatureError, ExpiredSignatureError
+# from jwt.exceptions import DecodeError, InvalidSignatureError, ExpiredSignatureError
 
 security = HTTPBearer()
 
@@ -50,12 +50,12 @@ def get_authenticated_user(
         user_obj = db.query(UsersModel).filter_by(id=user_id).one_or_none()
         return user_obj
 
-    except InvalidSignatureError:
+    except jwt.InvalidSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed, invalid signature",
         )
-    except DecodeError:
+    except jwt.DecodeError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed, decode failed",
@@ -116,12 +116,12 @@ def decode_refresh_token(token):
             )
         return user_id
 
-    except InvalidSignatureError:
+    except jwt.InvalidSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed, invalid signature",
         )
-    except DecodeError:
+    except jwt.DecodeError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed, decode failed",
