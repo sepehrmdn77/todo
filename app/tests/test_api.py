@@ -1,45 +1,36 @@
-from fastapi.testclient import TestClient
 
-from core.database import Base, create_engine, sessionmaker, get_db
+def test_login_invalid_data_response_401(anonymous_client):
+    payload = { #  wrong user
+        "username": "test",
+        "password": "1234567"
+    }
+    response = anonymous_client.post("/users/login", json=payload)
+    assert response.status_code == 401
 
-from sqlalchemy import StaticPool
-
-from main import app
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool
-)
-
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    db = TestSessionLocal()
-
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-Base.metadata.create_all(bind=engine)
-
-client = TestClient(app)
-
-
-def test_login_response_401():
-    payload = {"username": "test", "password": "1234567"}
-    response = client.post("/users/login", json=payload)
+    payload = { #  wrong password
+        "username": "testuser",
+        "password": "@1234567"
+    }
+    response = anonymous_client.post("/users/login", json=payload)
     assert response.status_code == 401
 
 
-# def test_login_response_200():
-#     payload = {"username": "string", "password": "string"}
-#     response = client.post("/users/login", json=payload)
-#     assert response.status_code == 200
+def test_register_response_201(anonymous_client):
+    payload = {
+        "username": "kazem",
+        "password": "secret1234",
+        "confirm_password": "secret1234"
+    }
+    response = anonymous_client.post("/users/register", json=payload)
+    assert response.status_code == 201
+
+def test_login_response_202(anonymous_client):
+    payload = {
+        "username": "usertest",
+        "password": "12345678"
+    }
+    response = anonymous_client.post("/users/login", json=payload)
+    assert response.status_code == 202
+    assert "access_token" in response.json()
+    assert "refresh_token" in response.json()
+

@@ -4,6 +4,7 @@ from users.models import UsersModel
 from tasks.models import TaskModel
 from faker import Faker
 
+
 fake = Faker()
 
 
@@ -20,7 +21,7 @@ def seed_users(db):
 def seed_tasks(db, user, count=10):
     user = db.query(UsersModel).filter_by(id=user.id).first()
     task_list = []
-    for _ in range(10):
+    for _ in range(count):
         task_list.append(
             TaskModel(
                 user_id=user.id,

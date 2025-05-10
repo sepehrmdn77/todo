@@ -44,7 +44,8 @@ async def user_login(request: UserLoginSchema, db: Session = Depends(get_db)):
             "detail": "logged in successfully",
             "access_token": access_token,
             "refresh_token": refresh_token,
-        }
+        },
+        status_code=status.HTTP_202_ACCEPTED
     )
 
 
@@ -59,7 +60,7 @@ async def user_register(request: UserRegisterSchema, db: Session = Depends(get_d
     db.add(user_obj)
     db.commit()
 
-    return JSONResponse(content={"detail": "User registered successfully"})
+    return JSONResponse(status_code=status.HTTP_201_CREATED,content={"detail": "User registered successfully"})
 
 
 @router.post("/refresh_token")
