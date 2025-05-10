@@ -36,10 +36,10 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 pytest
 
-      - name: Create .env file
+      - name: exporting envvironment variables
         run: |
-          echo "SQLALCHEMY_DATABASE_URL=sqlite:///:memory:" >> .env
-          echo "JWT_SECRET_KEY=test" >> .env
+          export SQLALCHEMY_DATABASE_URL="sqlite:///:memory:"
+          export JWT_SECRET_KEY="test"
 
 
       - name: Lint with flake8
