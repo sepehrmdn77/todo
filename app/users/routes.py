@@ -16,9 +16,9 @@ import secrets
 router = APIRouter(tags=["users"], prefix="/users")
 
 
-def generate_token(lenght=32):
+def generate_token(length=32):
     """Generates a secure random token as a string"""
-    return secrets.token_hex(32)
+    return secrets.token_hex(length)
 
 
 @router.post("/login")

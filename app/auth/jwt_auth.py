@@ -1,28 +1,24 @@
 from fastapi import Depends, HTTPException, status
 
 from fastapi.security import (
-    HTTPBasic,
     HTTPBasicCredentials,
-    HTTPBearer,
-    HTTPAuthorizationCredentials,
+    HTTPBearer
 )
 
-from users.models import UsersModel, TokenModel
+from users.models import UsersModel
 
 from core.database import get_db
 
 from sqlalchemy.orm import Session
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from core.config import settings
 
 import jwt
 
-# from jwt.exceptions import DecodeError, InvalidSignatureError, ExpiredSignatureError
 
 security = HTTPBearer()
-
 
 def get_authenticated_user(
     credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)
@@ -71,7 +67,7 @@ def get_authenticated_user(
 
 def generate_access_token(user_id: int, expire_in: int = 60 * 15) -> str:
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "type": "access",
         "user_id": user_id,
