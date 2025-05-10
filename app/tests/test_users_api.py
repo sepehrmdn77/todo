@@ -24,13 +24,13 @@ def test_register_response_201(anonymous_client):
     response = anonymous_client.post("/users/register", json=payload)
     assert response.status_code == 201
 
-# def test_login_response_202(anonymous_client):
-#     payload = {
-#         "username": "usertest",
-#         "password": "12345678"
-#     }
-#     response = anonymous_client.post("/users/login", json=payload)
-#     assert response.status_code == 202
-#     assert "access_token" in response.json()
-#     assert "refresh_token" in response.json()
+def test_login_response_202(anonymous_client):
+    payload = {
+        "username": "usertest",
+        "password": "12345678"
+    }
+    response = anonymous_client.post("/users/login", json=payload)
+    assert response.status_code == 202
+    assert "access_token" in response.json()
+    assert "refresh_token" in response.json()
 

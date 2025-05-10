@@ -14,6 +14,9 @@ from users.models import UsersModel
 
 from tasks.models import TaskModel
 
+from auth.jwt_auth import generate_access_token
+
+
 fake = Faker()
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -49,20 +52,12 @@ def override_dependencies(db_session):
 #  session
 @pytest.fixture(scope="session", autouse=True)
 def tearup_and_down_db():
-    '''export env variables in test env:
-    export SQLALCHEMY_DATABASE_URL="sqlite:///:memory:"
-    export JWT_SECRET_KEY="test"'''
+    '''for tests in local env export env variables in terminal:
+        export SQLALCHEMY_DATABASE_URL="sqlite:///:memory:"
+        export JWT_SECRET_KEY="test"'''
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
-
-
-#  function
-@pytest.fixture(scope="function")
-def anonymous_client():
-    client = TestClient(app)
-    yield client
-
 
 #  module
 @pytest.fixture(scope="module", autouse=True)
@@ -79,12 +74,34 @@ def generate_mock_data(db_session):
         task_list.append(
             TaskModel(
                 user_id=user.id,
-                title=fake.sentence(nb_words=6),
-                description=fake.text(),
-                is_completed=fake.boolean(),
+                title=fake.sentence(nb_words=6), #  generate a random title
+                description=fake.text(), #  generate a random decription
+                is_completed=fake.boolean(), #  generate a random status
             )
         )
     db_session.add_all(task_list)
     db_session.commit()
     print(f"added 10 tasks for user id: {user.id}")
+
+#  function
+@pytest.fixture(scope="function")
+def anonymous_client():
+    client = TestClient(app)
+    yield client
+
+#  function
+@pytest.fixture(scope="function")
+def auth_client(db_session):
+    client = TestClient(app)
+    user = db_session.query(UsersModel).filter_by(username="usertest").one()
+    access_token = generate_access_token(user.id)
+    client.headers.update({"Authorization":f"Bearer {access_token}"})
+    yield client
+
+# #  function
+# @pytest.fixture(scope="function", autouse=True)
+# def random_task(db_session):
+#     user = db_session.query(UsersModel).filter_by(username="usertest").one()
+#     task = db_session.query(TaskModel).filter_by(user_id=user.id).first()
+#     return task
 
