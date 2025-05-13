@@ -124,6 +124,10 @@ dmypy.json
 
 cython_debug/
 
+*.test
+
+postgres/
+
 *.db
 *.sqlite3
 ./alembic/
