@@ -4,6 +4,7 @@ from fastapi.security import (
     HTTPBasicCredentials,
     HTTPBearer
 )
+import jwt.algorithms
 
 from users.models import UsersModel
 
@@ -61,7 +62,6 @@ def get_authenticated_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed, {e}",
         )
-
     return None
 
 
@@ -72,7 +72,7 @@ def generate_access_token(user_id: int, expire_in: int = 60 * 15) -> str:
         "type": "access",
         "user_id": user_id,
         "iat": now,
-        "exp": now + timedelta(seconds=expire_in),
+        "exp": now + timedelta(seconds=expire_in)
     }
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
@@ -89,7 +89,6 @@ def generate_refresh_token(user_id: int, expire_in: int = 3600 * 24) -> str:
     }
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
-
 
 def decode_refresh_token(token):
     try:
