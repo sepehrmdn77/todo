@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from core.celery_conf import add_number
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -112,3 +113,9 @@ async def http_validation_handler(request, exc):
         "detail": exc.errors()
     }
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
+
+@app.get("/initiate-celery-task", tags=["Celery task"], status_code=200)
+def initiate_celery_task():
+    add_number(1,2)
+    return JSONResponse(content={"detail": "task is done"})
+
