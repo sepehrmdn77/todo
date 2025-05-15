@@ -114,8 +114,14 @@ async def http_validation_handler(request, exc):
     }
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
 
+from celery.result import AsyncResult
+
 @app.get("/initiate-celery-task", tags=["Celery task"], status_code=200)
-def initiate_celery_task():
-    add_number(1,2)
-    return JSONResponse(content={"detail": "task is done"})
+async def initiate_celery_task():
+    return JSONResponse(content={"detail": add_number.delay(1,2).id})
+
+@app.get("/cehck-celery-task-result", tags=["Celery task"], status_code=200)
+async def check_celery_task_result(task_id:str):
+    result = AsyncResult(task_id).ready()
+    return JSONResponse(content={"result": result})
 

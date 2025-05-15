@@ -18,6 +18,14 @@ services:
       start_period: 30s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+
   smtp4dev:
     image: rnwood/smtp4dev:v3
     restart: always
@@ -51,6 +59,37 @@ services:
 
     # - DATABASE_URL=postgresql://postgres:postgres@db:5432/app_db    
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: celery_worker
+    command: bash -c 'PYTHONPATH=/usr/src/core celery -A core.celery_conf.celery_app worker --loglevel=INFO'
+    volumes:
+      - ./app:/usr/src/core
+    # does not need external port
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      JWT_SECRET_KEY: x8_90*6ztco&bhm$ua22m!5%a&lz-eb=&bmx+cr527n6fb2jfd
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: celery_beat
+    command: bash -c 'PYTHONPATH=/usr/src/core celery -A core.celery_conf.celery_app beat --loglevel=INFO'
+    volumes:
+      - ./app:/usr/src/core
+    # does not need external port
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      JWT_SECRET_KEY: x8_90*6ztco&bhm$ua22m!5%a&lz-eb=&bmx+cr527n6fb2jfd
 
 volumes:
   smtp4dev-data:
