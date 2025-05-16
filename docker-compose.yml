@@ -91,6 +91,14 @@ services:
       SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
       JWT_SECRET_KEY: x8_90*6ztco&bhm$ua22m!5%a&lz-eb=&bmx+cr527n6fb2jfd
 
+  flower:
+    image: mher/flower:0.9.7
+    command: ['flower', '--broker=redis://redis:6379/3', '--port=5555']
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis
+
 volumes:
   smtp4dev-data:
 #   postgres_data:
