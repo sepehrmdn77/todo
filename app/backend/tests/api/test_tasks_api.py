@@ -42,7 +42,7 @@ def test_list_tasks_should_include_first_task_by_default(auth_client):
 def test_list_tasks_should_filter_by_category_and_completion(auth_client):
     create(auth_client, title="Verbs", category="finnish", is_completed=True)
     create(auth_client, title="Nouns", category="finnish")
-    create(auth_client, title="Sketch", category="painting", is_completed=True)
+    create(auth_client, title="Sketch", category="general", is_completed=True)
     response = auth_client.get(TASKS_URL, params={"category": "finnish", "completed": "true"})
     assert [t["title"] for t in response.json()] == ["Verbs"]
 
@@ -59,11 +59,11 @@ def test_get_task_should_return_404_for_other_users_task(auth_client, other_clie
 
 
 def test_patch_task_should_update_only_given_fields(auth_client):
-    task = create(auth_client, description="keep me", category="painting")
+    task = create(auth_client, description="keep me", category="general")
     response = auth_client.patch(f"{TASKS_URL}/{task['id']}", json={"title": "Renamed"})
     assert response.status_code == 200
     body = response.json()
-    assert (body["title"], body["description"], body["category"]) == ("Renamed", "keep me", "painting")
+    assert (body["title"], body["description"], body["category"]) == ("Renamed", "keep me", "general")
 
 
 def test_patch_task_should_persist_marking_incomplete(auth_client):
@@ -101,5 +101,5 @@ def test_summary_should_count_per_category_zero_filled(auth_client):
     assert auth_client.get(f"{TASKS_URL}/summary").json() == [
         {"category": "university", "total": 0, "completed": 0},
         {"category": "finnish", "total": 2, "completed": 1},
-        {"category": "painting", "total": 0, "completed": 0},
+        {"category": "general", "total": 0, "completed": 0},
     ]

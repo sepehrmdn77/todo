@@ -34,7 +34,7 @@ def test_get_task_should_hide_other_users_tasks(service):
 def test_list_tasks_should_filter_by_completion_and_category(service):
     service.create_task(OWNER_ID, title="A", category=TaskCategory.FINNISH, is_completed=True)
     service.create_task(OWNER_ID, title="B", category=TaskCategory.FINNISH)
-    service.create_task(OWNER_ID, title="C", category=TaskCategory.PAINTING, is_completed=True)
+    service.create_task(OWNER_ID, title="C", category=TaskCategory.GENERAL, is_completed=True)
     titles = [t.title for t in service.list_tasks(OWNER_ID, completed=True, category=TaskCategory.FINNISH)]
     assert titles == ["A"]
 
@@ -65,10 +65,10 @@ def test_delete_task_should_remove_task(service):
 
 
 def test_summarize_categories_should_zero_fill_every_category_in_order(service):
-    service.create_task(OWNER_ID, title="A", category=TaskCategory.PAINTING, is_completed=True)
-    service.create_task(OWNER_ID, title="B", category=TaskCategory.PAINTING)
+    service.create_task(OWNER_ID, title="A", category=TaskCategory.GENERAL, is_completed=True)
+    service.create_task(OWNER_ID, title="B", category=TaskCategory.GENERAL)
     assert service.summarize_categories(OWNER_ID) == [
         CategorySummary(TaskCategory.UNIVERSITY, total=0, completed=0),
         CategorySummary(TaskCategory.FINNISH, total=0, completed=0),
-        CategorySummary(TaskCategory.PAINTING, total=2, completed=1),
+        CategorySummary(TaskCategory.GENERAL, total=2, completed=1),
     ]

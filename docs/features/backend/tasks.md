@@ -1,7 +1,7 @@
 # Tasks (Backend Module Doc)
 
 ## 1. Purpose
-The `tasks` module lets an authenticated user keep a personal to-do list. Each task has a title, optional description, optional category (university, finnish, painting) and a completion flag. The module also reports per-category counts for the UI. It follows the Lich layering: pure domain in the centre, a port for persistence, a SQLAlchemy adapter, and thin HTTP routes.
+The `tasks` module lets an authenticated user keep a personal to-do list. Each task has a title, optional description, optional category (university, finnish, general) and a completion flag. The module also reports per-category counts for the UI. It follows the Lich layering: pure domain in the centre, a port for persistence, a SQLAlchemy adapter, and thin HTTP routes.
 
 ## 2. Entities
 Defined in `app/backend/tasks/entities.py` (pure Python, no ORM or HTTP imports).
@@ -11,7 +11,7 @@ Defined in `app/backend/tasks/entities.py` (pure Python, no ORM or HTTP imports)
   - Description: trimmed, at most 500 characters (`DESCRIPTION_MAX_LENGTH`); a blank description is stored as `null`.
   - Category: one of the fixed `TaskCategory` values, or `null`.
   - `is_completed`: must be a real boolean.
-- `TaskCategory`: enum with `university`, `finnish`, `painting`.
+- `TaskCategory`: enum with `university`, `finnish`, `general`.
 - `CategorySummary`: `category`, `total`, `completed`.
 - Errors: `InvalidTaskError` (rule violation, message is user-safe) and `TaskNotFoundError` (missing or foreign task).
 
@@ -23,7 +23,7 @@ Defined in `app/backend/tasks/entities.py` (pure Python, no ORM or HTTP imports)
 - `create_task(user_id, ...)`
 - `update_task(user_id, task_id, changes)`: partial update; only supplied fields change, `null` clears description or category
 - `delete_task(user_id, task_id)`
-- `summarize_categories(user_id)`: one entry per category, zero-filled, in order university, finnish, painting
+- `summarize_categories(user_id)`: one entry per category, zero-filled, in order university, finnish, general
 
 ## 4. Ports
 `TaskRepository` (`tasks/ports.py`) is the persistence contract: `list_for_user`, `get_for_user`, `add`, `save`, `delete`, `summarize_by_category`. Every method takes the owning `user_id` (or a task carrying it). `list_for_user` must return incomplete tasks first, then newest first.

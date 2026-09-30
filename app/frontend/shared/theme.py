@@ -8,7 +8,7 @@ TEXT = "black"
 MUTED = "black54"
 TRACK = "black12"
 
-CATEGORY_COLORS = {"university": "#F26B0F", "finnish": "#FCC737", "painting": "#E73879"}
+CATEGORY_COLORS = {"university": "#F26B0F", "finnish": "#FCC737", "general": "#E73879"}
 UNCATEGORIZED_COLOR = "#7E1891"
 
 PANEL_WIDTH = 400

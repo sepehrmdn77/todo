@@ -13,7 +13,7 @@ UPDATABLE_FIELDS = frozenset({"title", "description", "is_completed", "category"
 class TaskCategory(str, Enum):
     UNIVERSITY = "university"
     FINNISH = "finnish"
-    PAINTING = "painting"
+    GENERAL = "general"
 
 
 class InvalidTaskError(ValueError):

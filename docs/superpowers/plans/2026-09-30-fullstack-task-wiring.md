@@ -14,7 +14,7 @@
 
 1. **Backend architecture:** Lich layers for `tasks` only. `users`/`auth` keep their layout and only get bug and security fixes.
 2. **Frontend auth:** Login and Register screens. Tokens are kept only in server-side Python memory for the session, and the access token is refreshed automatically using the refresh token.
-3. **Categories:** a nullable `category` column with a fixed allowed list: `university`, `finnish`, `painting`. Category cards show real totals and progress.
+3. **Categories:** a nullable `category` column with a fixed allowed list: `university`, `finnish`, `general`. Category cards show real totals and progress.
 4. **Schema:** Alembic migrations, with `alembic upgrade head` run when the backend container starts.
 5. **Config:** everything environment-specific lives in `.env`. `.env.example` is committed and `.env` never is.
 6. **Features that must work end to end:** register, log in, log out, list tasks, filter by category, create, edit (title, description, category), mark complete/incomplete, and delete with confirmation. Data must survive container restarts.
@@ -482,7 +482,7 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 
 **Interfaces:**
 - Produces (used by Task 3):
-  - `TaskCategory(str, Enum)`: `UNIVERSITY="university"`, `FINNISH="finnish"`, `PAINTING="painting"`
+  - `TaskCategory(str, Enum)`: `UNIVERSITY="university"`, `FINNISH="finnish"`, `GENERAL="general"`
   - `TITLE_MAX_LENGTH = 150`, `DESCRIPTION_MAX_LENGTH = 500`
   - `Task` dataclass with fields `user_id: int, title: str, description: Optional[str]=None, is_completed: bool=False, category: Optional[TaskCategory]=None, id: Optional[int]=None, created_date: Optional[datetime]=None, updated_date: Optional[datetime]=None`, and `Task.apply_changes(changes: Mapping[str, Any]) -> None`
   - `CategorySummary(category: TaskCategory, total: int, completed: int)` (frozen)
@@ -539,9 +539,9 @@ def test_task_should_reject_unknown_category():
 
 
 def test_apply_changes_should_only_touch_given_fields():
-    task = Task(user_id=1, title="Old", description="keep", category=TaskCategory.PAINTING)
+    task = Task(user_id=1, title="Old", description="keep", category=TaskCategory.GENERAL)
     task.apply_changes({"title": "New"})
-    assert (task.title, task.description, task.category) == ("New", "keep", TaskCategory.PAINTING)
+    assert (task.title, task.description, task.category) == ("New", "keep", TaskCategory.GENERAL)
 
 
 def test_apply_changes_should_allow_marking_incomplete():
@@ -594,7 +594,7 @@ UPDATABLE_FIELDS = frozenset({"title", "description", "is_completed", "category"
 class TaskCategory(str, Enum):
     UNIVERSITY = "university"
     FINNISH = "finnish"
-    PAINTING = "painting"
+    GENERAL = "general"
 
 
 class InvalidTaskError(ValueError):
@@ -822,7 +822,7 @@ def test_get_task_should_hide_other_users_tasks(service):
 def test_list_tasks_should_filter_by_completion_and_category(service):
     service.create_task(OWNER_ID, title="A", category=TaskCategory.FINNISH, is_completed=True)
     service.create_task(OWNER_ID, title="B", category=TaskCategory.FINNISH)
-    service.create_task(OWNER_ID, title="C", category=TaskCategory.PAINTING, is_completed=True)
+    service.create_task(OWNER_ID, title="C", category=TaskCategory.GENERAL, is_completed=True)
     titles = [t.title for t in service.list_tasks(OWNER_ID, completed=True, category=TaskCategory.FINNISH)]
     assert titles == ["A"]
 
@@ -853,12 +853,12 @@ def test_delete_task_should_remove_task(service):
 
 
 def test_summarize_categories_should_zero_fill_every_category_in_order(service):
-    service.create_task(OWNER_ID, title="A", category=TaskCategory.PAINTING, is_completed=True)
-    service.create_task(OWNER_ID, title="B", category=TaskCategory.PAINTING)
+    service.create_task(OWNER_ID, title="A", category=TaskCategory.GENERAL, is_completed=True)
+    service.create_task(OWNER_ID, title="B", category=TaskCategory.GENERAL)
     assert service.summarize_categories(OWNER_ID) == [
         CategorySummary(TaskCategory.UNIVERSITY, total=0, completed=0),
         CategorySummary(TaskCategory.FINNISH, total=0, completed=0),
-        CategorySummary(TaskCategory.PAINTING, total=2, completed=1),
+        CategorySummary(TaskCategory.GENERAL, total=2, completed=1),
     ]
 ```
 
@@ -965,7 +965,7 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 - Consumes: everything Task 2 produces. It also uses `get_authenticated_user` from `auth.jwt_auth` (returns a `UsersModel` with `.id`) and `get_db` from `core.database`.
 - Produces the HTTP contract that the frontend (Task 6) relies on. All paths are under `/todo` and need `Authorization: Bearer <access>`:
   - `GET /todo/tasks?limit=1..100 (default 50)&offset>=0 (default 0)&completed=bool&category=<cat>` → 200 `[TaskResponse]`
-  - `GET /todo/tasks/summary` → 200 `[{"category": str, "total": int, "completed": int}]`, one entry per category in the order university, finnish, painting
+  - `GET /todo/tasks/summary` → 200 `[{"category": str, "total": int, "completed": int}]`, one entry per category in the order university, finnish, general
   - `GET /todo/tasks/{id}` → 200 `TaskResponse` or 404
   - `POST /todo/tasks` with body `{"title": str, "description"?: str|null, "category"?: cat|null, "is_completed"?: bool}` → **201** `TaskResponse`
   - `PATCH /todo/tasks/{id}` with any subset of those fields (`null` clears description or category) → 200 `TaskResponse`
@@ -1020,7 +1020,7 @@ def test_list_tasks_should_include_first_task_by_default(auth_client):
 def test_list_tasks_should_filter_by_category_and_completion(auth_client):
     create(auth_client, title="Verbs", category="finnish", is_completed=True)
     create(auth_client, title="Nouns", category="finnish")
-    create(auth_client, title="Sketch", category="painting", is_completed=True)
+    create(auth_client, title="Sketch", category="general", is_completed=True)
     response = auth_client.get(TASKS_URL, params={"category": "finnish", "completed": "true"})
     assert [t["title"] for t in response.json()] == ["Verbs"]
 
@@ -1037,11 +1037,11 @@ def test_get_task_should_return_404_for_other_users_task(auth_client, other_clie
 
 
 def test_patch_task_should_update_only_given_fields(auth_client):
-    task = create(auth_client, description="keep me", category="painting")
+    task = create(auth_client, description="keep me", category="general")
     response = auth_client.patch(f"{TASKS_URL}/{task['id']}", json={"title": "Renamed"})
     assert response.status_code == 200
     body = response.json()
-    assert (body["title"], body["description"], body["category"]) == ("Renamed", "keep me", "painting")
+    assert (body["title"], body["description"], body["category"]) == ("Renamed", "keep me", "general")
 
 
 def test_patch_task_should_persist_marking_incomplete(auth_client):
@@ -1079,7 +1079,7 @@ def test_summary_should_count_per_category_zero_filled(auth_client):
     assert auth_client.get(f"{TASKS_URL}/summary").json() == [
         {"category": "university", "total": 0, "completed": 0},
         {"category": "finnish", "total": 2, "completed": 1},
-        {"category": "painting", "total": 0, "completed": 0},
+        {"category": "general", "total": 0, "completed": 0},
     ]
 ```
 
@@ -1984,7 +1984,7 @@ down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-task_category = sa.Enum("university", "finnish", "painting", name="task_category")
+task_category = sa.Enum("university", "finnish", "general", name="task_category")
 
 
 def upgrade() -> None:
@@ -2753,8 +2753,8 @@ from typing import Any, Mapping, Optional
 
 TITLE_MAX_LENGTH = 150
 DESCRIPTION_MAX_LENGTH = 500
-CATEGORIES: tuple[str, ...] = ("university", "finnish", "painting")
-CATEGORY_LABELS: dict[str, str] = {"university": "University", "finnish": "Finnish", "painting": "Painting"}
+CATEGORIES: tuple[str, ...] = ("university", "finnish", "general")
+CATEGORY_LABELS: dict[str, str] = {"university": "University", "finnish": "Finnish", "general": "general"}
 
 
 @dataclass(frozen=True)
@@ -2930,7 +2930,7 @@ TEXT = "white"
 MUTED = "white70"
 TRACK = "white12"
 
-CATEGORY_COLORS = {"university": "#F26B0F", "finnish": "#FCC737", "painting": "#E73879"}
+CATEGORY_COLORS = {"university": "#F26B0F", "finnish": "#FCC737", "general": "#E73879"}
 UNCATEGORIZED_COLOR = "#7E1891"
 
 PANEL_WIDTH = 400

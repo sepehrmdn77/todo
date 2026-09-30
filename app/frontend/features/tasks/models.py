@@ -5,8 +5,8 @@ from typing import Any, Mapping, Optional
 
 TITLE_MAX_LENGTH = 150
 DESCRIPTION_MAX_LENGTH = 500
-CATEGORIES: tuple[str, ...] = ("university", "finnish", "painting")
-CATEGORY_LABELS: dict[str, str] = {"university": "University", "finnish": "Finnish", "painting": "Painting"}
+CATEGORIES: tuple[str, ...] = ("university", "finnish", "general")
+CATEGORY_LABELS: dict[str, str] = {"university": "University", "finnish": "Finnish", "general": "general"}
 
 
 @dataclass(frozen=True)

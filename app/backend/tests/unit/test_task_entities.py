@@ -44,9 +44,9 @@ def test_task_should_reject_unknown_category():
 
 
 def test_apply_changes_should_only_touch_given_fields():
-    task = Task(user_id=1, title="Old", description="keep", category=TaskCategory.PAINTING)
+    task = Task(user_id=1, title="Old", description="keep", category=TaskCategory.GENERAL)
     task.apply_changes({"title": "New"})
-    assert (task.title, task.description, task.category) == ("New", "keep", TaskCategory.PAINTING)
+    assert (task.title, task.description, task.category) == ("New", "keep", TaskCategory.GENERAL)
 
 
 def test_apply_changes_should_allow_marking_incomplete():
