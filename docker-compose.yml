@@ -60,6 +60,7 @@ services:
     environment:
       FLET_FORCE_WEB_SERVER: "true"
       FLET_SERVER_PORT: "3000"
+      FLET_SERVER_IP: "0.0.0.0"
     depends_on:
       - backend
     networks:
