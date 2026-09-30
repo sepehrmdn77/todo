@@ -15,7 +15,16 @@
 
 ## Configuration
 
-The root `.env` is created from `.env.example`, which arrives in Task 8 of the full-stack wiring plan. Never commit `.env`.
+The root `.env` is created from `.env.example`. Never commit `.env`.
+
+## First Run
+
+```bash
+cp .env.example .env            # then edit the secrets (single-quote values containing $)
+docker compose up -d --build
+```
+
+Open `http://localhost:3000`. The API is at `http://127.0.0.1:8000/docs`. See `docs/runbooks/infra/docker-compose.md` for day-to-day operation.
 
 ## Running Backend Tests
 
@@ -25,6 +34,15 @@ cd app/backend && python -m pytest -q
 
 - Tests set their own environment in `tests/conftest.py`, so no database or secrets are needed.
 - Layout: `tests/unit` (no DB or network), `tests/api` (FastAPI client with an in-memory SQLite DB per test), `tests/integration`.
+
+## Running Frontend Tests
+
+```bash
+cd app/frontend && python -m pytest -q
+```
+
+- Needs `httpx==0.28.1` and `pytest==8.3.5`. Do not install `flet` into the backend test venv.
+- Unit tests use no network.
 
 ## Import Convention
 
