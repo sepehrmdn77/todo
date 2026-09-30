@@ -1,11 +1,11 @@
 """Design tokens for the app (colors and sizes). Change the look here, not in views."""
 
-BG = "#FFD1F2"      # outer page and cards
-FG = "#6420AA"      # main panel
+BG = "#FFDEF1"      # outer page and cards
+FG = "#97b4ff"      # main panel
 PINK = "#FF3EA5"    # accents, progress, primary actions
-TEXT = "white"
-MUTED = "white70"
-TRACK = "white12"
+TEXT = "black"
+MUTED = "black54"
+TRACK = "black12"
 
 CATEGORY_COLORS = {"university": "#F26B0F", "finnish": "#FCC737", "painting": "#E73879"}
 UNCATEGORIZED_COLOR = "#7E1891"
