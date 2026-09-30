@@ -21,6 +21,8 @@ class UserRegisterSchema(BaseModel):
     @field_validator("username")
     @classmethod
     def normalize_username(cls, username: str) -> str:
+        if any(ord(char) < 32 for char in username):
+            raise ValueError("username must not contain control characters")
         cleaned = username.strip().lower()
         if len(cleaned) < USERNAME_MIN_LENGTH:
             raise ValueError(f"username must be at least {USERNAME_MIN_LENGTH} characters")

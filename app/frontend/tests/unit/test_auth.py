@@ -55,3 +55,8 @@ def test_logout_should_forget_session():
     auth._client.set_tokens("a", "r")
     auth.logout()
     assert not auth.is_authenticated and auth.username is None
+
+
+def test_validate_registration_should_state_password_range():
+    errors = validate_registration("sara", "x" * 129, "x" * 129)
+    assert errors["password"] == "Use 8 to 128 characters."

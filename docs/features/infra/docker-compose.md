@@ -7,7 +7,7 @@ Runs the whole todo app locally with one command: PostgreSQL (`db`), the FastAPI
 - **db**: `postgres:15-alpine`, data in the named volume `postgres_data`. Attached only to `internal_net`. Published on `127.0.0.1:5432` for local tooling.
 - **backend**: built from `Dockerfile.backend`. Runs Alembic migrations on start, then serves on port 8000 (published on `127.0.0.1:8000`). Attached to `internal_net` (to reach db) and `public_net` (to be reached by the frontend). Waits for a healthy db.
 - **frontend**: built from `Dockerfile.frontend`. Flet web server on port 3000 (published on all interfaces). Attached only to `public_net`. Waits for a healthy backend. Calls the API server-side at `API_BASE_URL`.
-- **Networks**: `internal_net` and `public_net` are separate bridge networks. The db is isolated by network membership (it is never on `public_net`, so the frontend cannot reach it) and by its localhost-only port binding. `internal_net` is deliberately not `internal: true`, because Docker does not publish ports for containers that sit only on an internal network.
+- **Networks**: `internal_net` and `public_net` are separate bridge networks. The db is isolated by network membership (it is never on `public_net`, so the frontend cannot reach it) and by its localhost-only port binding. `internal_net` is deliberately not `internal: true`, because Docker does not publish ports for containers that sit only on an internal network. As a consequence the db container has outbound internet egress.
 - **Volume**: `postgres_data` holds the database files and survives `docker compose down`.
 
 See [infra architecture](../../architecture/infra-architecture.md).

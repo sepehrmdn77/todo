@@ -81,3 +81,25 @@ def test_refresh_for_deleted_user_should_return_401(anonymous_client, user, db_s
     db_session.delete(user)
     db_session.commit()
     assert anonymous_client.post("/users/refresh_token", json={"token": token}).status_code == 401
+
+
+def test_register_should_reject_control_character_in_username(anonymous_client):
+    response = anonymous_client.post(
+        "/users/register",
+        json={"username": "ab\u0000cd", "password": "12345678", "confirm_password": "12345678"},
+    )
+    assert response.status_code == 422
+
+
+def test_register_should_return_409_when_commit_hits_unique_violation(anonymous_client, db_session, monkeypatch):
+    from sqlalchemy.exc import IntegrityError
+
+    def racing_commit():
+        raise IntegrityError("insert", {}, Exception("duplicate"))
+
+    monkeypatch.setattr(db_session, "commit", racing_commit)
+    response = anonymous_client.post(
+        "/users/register",
+        json={"username": "racer", "password": "12345678", "confirm_password": "12345678"},
+    )
+    assert response.status_code == 409

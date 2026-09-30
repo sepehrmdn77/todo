@@ -74,3 +74,22 @@ def test_apply_changes_should_reject_null_completion():
 def test_apply_changes_should_reject_unknown_fields():
     with pytest.raises(InvalidTaskError):
         Task(user_id=1, title="T").apply_changes({"user_id": 2})
+
+
+def test_task_should_reject_control_character_in_title():
+    with pytest.raises(InvalidTaskError):
+        Task(user_id=1, title="a\x00b")
+
+
+def test_task_should_reject_newline_in_title():
+    with pytest.raises(InvalidTaskError):
+        Task(user_id=1, title="a\nb")
+
+
+def test_task_should_reject_nul_in_description():
+    with pytest.raises(InvalidTaskError):
+        Task(user_id=1, title="Read", description="a\x00b")
+
+
+def test_task_should_allow_newline_and_tab_in_description():
+    assert Task(user_id=1, title="Read", description="a\n\tb\r\nc").description == "a\n\tb\r\nc"

@@ -20,7 +20,7 @@ def validate_registration(username: str, password: str, confirm_password: str) -
     if not USERNAME_MIN_LENGTH <= len(username.strip()) <= USERNAME_MAX_LENGTH:
         errors["username"] = f"Use {USERNAME_MIN_LENGTH} to {USERNAME_MAX_LENGTH} characters."
     if not PASSWORD_MIN_LENGTH <= len(password) <= PASSWORD_MAX_LENGTH:
-        errors["password"] = f"Use at least {PASSWORD_MIN_LENGTH} characters."
+        errors["password"] = f"Use {PASSWORD_MIN_LENGTH} to {PASSWORD_MAX_LENGTH} characters."
     if confirm_password != password:
         errors["confirm_password"] = "Passwords don't match."
     return errors

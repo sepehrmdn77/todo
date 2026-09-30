@@ -128,3 +128,10 @@ async def task_not_found_handler(request: Request, exc: TaskNotFoundError):
 @app.exception_handler(InvalidTaskError)
 async def invalid_task_handler(request: Request, exc: InvalidTaskError):
     return error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc))
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Method and path only: never log bodies, headers or exception arguments that may hold secrets.
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return error_response(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error")

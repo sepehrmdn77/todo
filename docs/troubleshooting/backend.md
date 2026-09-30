@@ -20,6 +20,11 @@
 - Cause: it cannot; `tests/conftest.py` overrides the environment before the app loads.
 - Fix: none needed. If data looks wrong, check that you are running from `app/backend`.
 
+## Backend crash-loops on start: "relation already exists" or "Can't locate revision"
+- Symptom: the `backend` container restarts repeatedly; logs show `relation "users" already exists` or `Can't locate revision identified by ...` from `alembic upgrade head`.
+- Cause: the `postgres_data` volume comes from the pre-Alembic history (tables exist, but no matching `alembic_version` row).
+- Fix: back up first (`pg_dump`, see `docs/runbooks/infra/docker-compose.md`). If the existing schema matches the models, run `docker compose run --rm backend alembic stamp 0001_initial_schema` and restart, so `upgrade head` applies only newer revisions. Otherwise recreate the volume (this destroys data, so only after a verified backup).
+
 ## `ModuleNotFoundError: backend`
 - Symptom: import fails with `No module named 'backend'`.
 - Cause: the code uses flat imports rooted at `app/backend` (for example `from tasks.services import TaskService`).

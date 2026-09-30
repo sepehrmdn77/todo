@@ -33,7 +33,7 @@ None. Auth reads users directly through the SQLAlchemy session (`get_db`).
 Protected routes expect `Authorization: Bearer <access token>`. Every token failure returns 401 with `detail="Authentication failed"` and header `WWW-Authenticate: Bearer`.
 
 ## 7. Validation Rules
-- Username: 3 to 250 characters after trimming; stored lowercase; unique (enforced by a DB unique index, checked case-insensitively). Login lookup trims and lowercases too.
+- Username: 3 to 250 characters after trimming, no control characters (422); stored lowercase; unique (enforced by a DB unique index, checked case-insensitively). Login lookup trims and lowercases too.
 - Password: 8 to 128 characters; `confirm_password` must match.
 - Refresh token body is a required string.
 
@@ -43,7 +43,8 @@ Protected routes expect `Authorization: Bearer <access token>`. Every token fail
 - Deleted or inactive users are rejected on both access and refresh.
 - 422 responses never echo submitted input (passwords included).
 - Passwords are hashed with bcrypt; tokens and passwords are never logged.
-- Secret comes from `JWT_SECRET_KEY`; algorithm is pinned to HS256.
+- Secret comes from `JWT_SECRET_KEY` and must be at least 32 characters: the backend refuses to start otherwise (so the `.env.example` placeholder fails fast on purpose). Algorithm is pinned to HS256.
+- Registering the same username concurrently: the unique index wins, the loser gets 409 (not 500).
 
 ## 9. Testing Strategy
 - Unit (`tests/unit/test_jwt_auth.py`): round-trips, wrong type, expired, foreign signature, missing claim, garbage. No DB or network.

@@ -17,13 +17,31 @@ def service_with(handler) -> TaskService:
     return TaskService(client)
 
 
-def test_list_tasks_should_request_max_page_and_map_tasks():
+def test_list_tasks_should_request_one_short_page_and_map_tasks():
+    requests = []
+
     def handler(request):
-        assert request.url.path == "/todo/tasks" and request.url.params["limit"] == "100"
+        requests.append(request)
         return httpx.Response(200, json=[TASK_JSON])
 
     tasks = asyncio.run(service_with(handler).list_tasks())
     assert [t.title for t in tasks] == ["Essay"]
+    assert len(requests) == 1
+    assert requests[0].url.path == "/todo/tasks"
+    assert (requests[0].url.params["limit"], requests[0].url.params["offset"]) == ("100", "0")
+
+
+def test_list_tasks_should_fetch_every_page_until_a_short_one():
+    offsets = []
+
+    def handler(request):
+        offsets.append(int(request.url.params["offset"]))
+        rows = [{**TASK_JSON, "id": i} for i in range(100)] if offsets[-1] == 0 else [{**TASK_JSON, "id": 100}]
+        return httpx.Response(200, json=rows)
+
+    tasks = asyncio.run(service_with(handler).list_tasks())
+    assert len(tasks) == 101
+    assert offsets == [0, 100]
 
 
 def test_create_task_should_post_draft_payload():

@@ -25,7 +25,7 @@
 ```
 
 ## Reasoning
-- **Two networks**: the frontend can reach the backend but never the db. The db is reachable only by services on `internal_net` (the backend) and from the host loopback. `internal: true` is not used, because Docker then cannot publish the db port to the host.
+- **Two networks**: the frontend can reach the backend but never the db. The db is reachable only by services on `internal_net` (the backend) and from the host loopback. `internal: true` is not used, because Docker then cannot publish the db port to the host. As a consequence the db container has outbound internet egress through the default bridge gateway.
 - **Localhost-bound ports**: the API and Postgres are for local tooling only and must not be exposed on the LAN. Only the UI is public.
 - **Per-service environment**: a blanket `env_file` gave every container every secret. Now the frontend never sees the DB password or JWT secret.
 - **Non-root and `no-new-privileges`**: limits the impact of a container compromise.

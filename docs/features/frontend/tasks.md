@@ -39,4 +39,4 @@ Ownership is enforced by the backend (foreign ids behave as missing). Text is re
 Unit tests for models and `TaskService` with a fake transport. Views: build smoke check under flet 1.0.3 plus the manual end-to-end checklist from the full-stack wiring plan (Task 8).
 
 ## 11. Future Improvements
-Due dates, search, drag-to-reorder, optimistic list updates without full reload, pagination beyond the default page size.
+Due dates, search, drag-to-reorder, optimistic list updates without full reload, pagination controls (the list already loads every page).

@@ -33,7 +33,7 @@ Defined in `app/backend/tasks/entities.py` (pure Python, no ORM or HTTP imports)
 
 - Ordering: `is_completed` ascending (incomplete first), then `created_date` descending, then `id` descending.
 - Every query filters on `user_id`.
-- Category is stored as an enum by value (`"finnish"`), nullable.
+- Category is stored as an enum by value (`"finnish"`), nullable. Migration `0002_rename_painting_category` renamed the stored value `painting` to `general` (`ALTER TYPE ... RENAME VALUE` on PostgreSQL, a row `UPDATE` on other dialects); `0001` is unchanged because it was already applied.
 - `updated_date` is refreshed through SQLAlchemy `onupdate`.
 - `user_id` is NOT NULL, indexed, and cascades on user delete.
 - `tasks/dependencies.py` is the composition root: `get_task_service` builds `TaskService(SqlAlchemyTaskRepository(db))`.
@@ -61,8 +61,8 @@ Error body for every failure: `{"error": true, "status_code": int, "detail": str
 ## 7. Validation Rules
 Validation happens in two steps.
 
-1. DTO (`tasks/schemas.py`): shape and lengths. Unknown fields are rejected (`extra="forbid"`), so a client cannot send `user_id`. Title 1-150 characters, description at most 500, category must be a known value, `limit` 1-100, path id > 0. `PATCH` with `"title": null` is rejected.
-2. Entity rules: trimming, blank title rejection (e.g. `"   "`), blank description becomes `null`, category and boolean checks. Violations raise `InvalidTaskError`, mapped to 422 in `main.py`.
+1. DTO (`tasks/schemas.py`): shape and lengths. Unknown fields are rejected (`extra="forbid"`), so a client cannot send `user_id`. Title 1-150 characters, description at most 500, category must be a known value, `limit` 1-100, `offset` 0 to 2147483647, path id > 0. `PATCH` with `"title": null` is rejected.
+2. Entity rules: trimming, blank title rejection (e.g. `"   "`), control characters rejected (titles: any character below code 32; descriptions: the same except newline, carriage return and tab; NUL would otherwise crash PostgreSQL with a 500), blank description becomes `null`, category and boolean checks. Violations raise `InvalidTaskError`, mapped to 422 in `main.py`.
 
 ## 8. Security Model
 - Authentication: every route depends on `get_authenticated_user` (JWT).
@@ -75,6 +75,6 @@ Validation happens in two steps.
 - API tests (`tests/api/test_tasks_api.py`) drive the real app with a per-test SQLite schema and cover auth, create defaults, validation, filters, per-user isolation, partial update, un-completing, delete and summary.
 
 ## 10. Future Improvements
-- Pagination controls in the UI (the API already supports `limit` and `offset`).
+- Pagination controls in the UI (the UI currently fetches every page of tasks; the API supports `limit` and `offset`).
 - User-defined categories instead of the fixed set.
 - Data migration for existing databases: the initial Alembic revision (`0001_initial_schema`) creates the full schema on an empty database only; future schema changes go in new revisions (see `docs/runbooks/backend/backend.md`).

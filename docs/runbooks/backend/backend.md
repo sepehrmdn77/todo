@@ -54,17 +54,7 @@ The service logs to stdout/stderr only: `docker logs -f backend`. Passwords, tok
 
 ## 7. Disaster Recovery
 
-Backup the database (`db` container):
-
-```bash
-docker exec db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backup.sql
-```
-
-Restore into an empty database:
-
-```bash
-docker exec -i db psql -U "$POSTGRES_USER" "$POSTGRES_DB" < backup.sql
-```
+Database backup and restore: follow `docs/runbooks/infra/docker-compose.md` (section 7), the single source of truth for those commands.
 
 Bad migration: roll back one revision with `docker exec backend alembic downgrade -1`, then deploy a fixed revision. Note that the container re-applies `upgrade head` on restart, so ship the fix (or an image without the bad revision) before restarting.
 

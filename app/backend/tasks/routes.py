@@ -17,12 +17,13 @@ from users.models import UsersModel
 router = APIRouter(tags=["tasks"], prefix="/todo")
 
 MAX_PAGE_SIZE = 100
+MAX_OFFSET = 2_147_483_647  # PostgreSQL int4 limit; larger values would crash the query
 
 
 @router.get("/tasks", response_model=list[TaskResponseSchema])
 def list_tasks(
     limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Page size"),
-    offset: int = Query(0, ge=0, description="Number of tasks to skip"),
+    offset: int = Query(0, ge=0, le=MAX_OFFSET, description="Number of tasks to skip"),
     completed: Optional[bool] = Query(None, description="Filter by completion status"),
     category: Optional[TaskCategory] = Query(None, description="Filter by category"),
     service: TaskService = Depends(get_task_service),

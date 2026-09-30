@@ -57,6 +57,8 @@ def build_task_form_view(page: ft.Page, tasks: TaskService, task: Optional[Task]
             save.disabled = False
             page.update()
             report_error(page, exc)
+            if exc.status_code == 404:  # task was deleted elsewhere: nothing left to edit
+                await page.push_route("/")
             return
         show_message(page, "Task saved." if is_edit else "Task added.")
         await page.push_route("/")
@@ -67,6 +69,8 @@ def build_task_form_view(page: ft.Page, tasks: TaskService, task: Optional[Task]
             await tasks.delete_task(task.id)
         except ApiError as exc:
             report_error(page, exc)
+            if exc.status_code == 404:  # already gone
+                await page.push_route("/")
             return
         show_message(page, "Task deleted.")
         await page.push_route("/")

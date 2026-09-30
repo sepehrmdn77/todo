@@ -103,3 +103,12 @@ def test_summary_should_count_per_category_zero_filled(auth_client):
         {"category": "finnish", "total": 2, "completed": 1},
         {"category": "general", "total": 0, "completed": 0},
     ]
+
+
+def test_create_task_should_reject_nul_in_title(auth_client):
+    assert auth_client.post(TASKS_URL, json={"title": "a\u0000b"}).status_code == 422
+
+
+def test_list_tasks_should_reject_offset_beyond_int32(auth_client):
+    response = auth_client.get(TASKS_URL, params={"offset": 99999999999999999999})
+    assert response.status_code == 422

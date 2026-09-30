@@ -2,6 +2,7 @@ from fastapi import APIRouter, Path, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from users.schemas import *  # better not to use *
 from users.models import UsersModel, TokenModel
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session  # for creating session
 from core.database import get_db
 from typing import List
@@ -59,7 +60,11 @@ async def user_register(request: UserRegisterSchema, db: Session = Depends(get_d
     user_obj = UsersModel(username=request.username)
     user_obj.set_password(request.password)
     db.add(user_obj)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:  # a concurrent request registered the same username
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username already exists")
 
     return JSONResponse(status_code=status.HTTP_201_CREATED,content={"detail": "User registered successfully"})
 

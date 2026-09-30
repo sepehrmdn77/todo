@@ -9,7 +9,7 @@ COPY app/backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN useradd --uid 1000 --no-create-home --shell /usr/sbin/nologin appuser
-COPY --chown=appuser:appuser app/backend .
+COPY app/backend .
 USER appuser
 
 EXPOSE 8000

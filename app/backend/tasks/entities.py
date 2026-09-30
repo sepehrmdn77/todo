@@ -28,9 +28,15 @@ class TaskNotFoundError(Exception):
         self.task_id = task_id
 
 
+def _has_control_characters(text: str, allowed: str = "") -> bool:
+    return any(ord(char) < 32 and char not in allowed for char in text)
+
+
 def normalize_title(title: Any) -> str:
     if not isinstance(title, str):
         raise InvalidTaskError("Title is required")
+    if _has_control_characters(title):
+        raise InvalidTaskError("Title must not contain control characters")
     cleaned = title.strip()
     if not cleaned:
         raise InvalidTaskError("Title must not be blank")
@@ -44,6 +50,8 @@ def normalize_description(description: Any) -> Optional[str]:
         return None
     if not isinstance(description, str):
         raise InvalidTaskError("Description must be text")
+    if _has_control_characters(description, allowed="\n\r\t"):
+        raise InvalidTaskError("Description must not contain control characters")
     cleaned = description.strip()
     if len(cleaned) > DESCRIPTION_MAX_LENGTH:
         raise InvalidTaskError(f"Description must be at most {DESCRIPTION_MAX_LENGTH} characters")

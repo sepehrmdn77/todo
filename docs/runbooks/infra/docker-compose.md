@@ -33,11 +33,11 @@ Health state and logs via `docker compose ps` and `docker compose logs -f <servi
 - Rotate `JWT_SECRET_KEY`: generate a new value with `python -c "import secrets; print(secrets.token_urlsafe(64))"`, put it in `.env` (single-quote it if it contains `$`), then `docker compose up -d backend`. All existing tokens become invalid, so every user is logged out.
 
 ## 7. Disaster Recovery
-Backup:
+Backup (`--clean --if-exists` makes the dump drop existing objects first, so it restores into an already-migrated database):
 ```bash
-docker exec db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > backup.sql
+docker exec db sh -c 'pg_dump --clean --if-exists -U "$POSTGRES_USER" "$POSTGRES_DB"' > backup.sql
 ```
-Restore into a running db (on a fresh `postgres_data` the backend creates the schema first; otherwise drop and recreate the schema):
+Restore into a running db. Stop the backend first so nothing writes during the restore:
 ```bash
 docker compose stop backend
 docker exec -i db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < backup.sql
