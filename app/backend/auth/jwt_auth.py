@@ -1,130 +1,85 @@
-from fastapi import Depends, HTTPException, status
-
-from fastapi.security import (
-    HTTPBasicCredentials,
-    HTTPBearer
-)
-import jwt.algorithms
-
-from users.models import UsersModel
-
-from core.database import get_db
-
-from sqlalchemy.orm import Session
-
 from datetime import datetime, timedelta, timezone
 
-from core.config import settings
-
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
 
+from core.config import settings
+from core.database import get_db
+from users.models import UsersModel
+
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_TTL_SECONDS = 15 * 60
+REFRESH_TOKEN_TTL_SECONDS = 24 * 60 * 60
+ACCESS_TOKEN_TYPE = "access"
+REFRESH_TOKEN_TYPE = "refresh"
 
 security = HTTPBearer()
 
-def get_authenticated_user(
-    credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)
-):
 
-    token = credentials.credentials
-    try:
-        decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms="HS256")
-        user_id = decoded.get("user_id", None)
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, user_id not in the payload",
-            )
-        if decoded.get("type") != "access":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, token type not valid",
-            )
-        if datetime.utcnow() > datetime.fromtimestamp(decoded.get("exp")):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, token expired",
-            )
-        user_obj = db.query(UsersModel).filter_by(id=user_id).one_or_none()
-        return user_obj
-
-    except jwt.InvalidSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed, invalid signature",
-        )
-    except jwt.DecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed, decode failed",
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Authentication failed, {e}",
-        )
-    return None
+def _authentication_failed() -> HTTPException:
+    # One generic message for every failure so callers can't probe why a token was rejected.
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication failed",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
-def generate_access_token(user_id: int, expire_in: int = 60 * 15) -> str:
-
+def _generate_token(user_id: int, token_type: str, expire_in: int) -> str:
     now = datetime.now(timezone.utc)
     payload = {
-        "type": "access",
-        "user_id": user_id,
-        "iat": now,
-        "exp": now + timedelta(seconds=expire_in)
-    }
-
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
-
-
-def generate_refresh_token(user_id: int, expire_in: int = 3600 * 24) -> str:
-
-    now = datetime.utcnow()
-    payload = {
-        "type": "refresh",
+        "type": token_type,
         "user_id": user_id,
         "iat": now,
         "exp": now + timedelta(seconds=expire_in),
     }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
 
-def decode_refresh_token(token):
+def _decode_token(token: str, expected_type: str) -> int:
+    """Validate signature, expiry (PyJWT), token type and user_id; return the user id."""
     try:
-        decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms="HS256")
-        user_id = decoded.get("user_id", None)
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, user_id not in the payload",
-            )
-        if decoded.get("type") != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, token type not valid",
-            )
-        if datetime.utcnow() > datetime.fromtimestamp(decoded.get("exp")):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed, token expired",
-            )
-        return user_id
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "type", "user_id"]},
+        )
+    except jwt.PyJWTError:
+        raise _authentication_failed() from None
+    user_id = payload["user_id"]
+    if payload["type"] != expected_type or not isinstance(user_id, int) or isinstance(user_id, bool):
+        raise _authentication_failed()
+    return user_id
 
-    except jwt.InvalidSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed, invalid signature",
-        )
-    except jwt.DecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed, decode failed",
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Authentication failed, {e}",
-        )
 
-    return None
+def generate_access_token(user_id: int, expire_in: int = ACCESS_TOKEN_TTL_SECONDS) -> str:
+    return _generate_token(user_id, ACCESS_TOKEN_TYPE, expire_in)
+
+
+def generate_refresh_token(user_id: int, expire_in: int = REFRESH_TOKEN_TTL_SECONDS) -> str:
+    return _generate_token(user_id, REFRESH_TOKEN_TYPE, expire_in)
+
+
+def decode_access_token(token: str) -> int:
+    return _decode_token(token, ACCESS_TOKEN_TYPE)
+
+
+def decode_refresh_token(token: str) -> int:
+    return _decode_token(token, REFRESH_TOKEN_TYPE)
+
+
+def find_active_user(db: Session, user_id: int) -> UsersModel:
+    user_obj = db.query(UsersModel).filter_by(id=user_id, is_active=True).one_or_none()
+    if user_obj is None:
+        raise _authentication_failed()
+    return user_obj
+
+
+def get_authenticated_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> UsersModel:
+    return find_active_user(db, decode_access_token(credentials.credentials))

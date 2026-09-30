@@ -23,7 +23,7 @@ class UsersModel(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    username = Column(String(250), nullable=False)
+    username = Column(String(250), nullable=False, unique=True, index=True)
     password = Column(String, nullable=False)
 
     is_active = Column(Boolean, default=True)
