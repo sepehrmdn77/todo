@@ -11,11 +11,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from tasks.routes import router as tasks_routes
+from backend.tasks.routes import router as tasks_routes
 
-from users.routes import router as users_routes
+from backend.users.routes import router as users_routes
 
-from pages.routes import router as pages_routes
+from backend.pages.routes import router as pages_routes
 
 import time
 
