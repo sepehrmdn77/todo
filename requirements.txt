@@ -9,6 +9,7 @@ Faker==37.1.0
 fastapi==0.115.12
 fastapi-cli==0.0.7
 fastapi-mail[httpx]
+flet==1.0.3
 greenlet==3.2.1
 h11==0.16.0
 httpcore==1.0.9
