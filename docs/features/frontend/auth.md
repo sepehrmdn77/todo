@@ -15,7 +15,8 @@ Login, registration and logout for the Flet UI. Code lives in `app/frontend/feat
 View -> `AuthService` -> `ApiClient` -> backend `/users/*`. The view validates input first (`validation.py`), disables the submit button while the call runs, and shows `ApiError.message` in a snackbar on failure. The backend validates again; client validation is only for fast feedback.
 
 ## 4. Components
-- `build_login_view(page, auth)` and `build_register_view(page, auth)` in `views.py`, sharing a centred card layout.
+- `build_login_view(page, auth)` and `build_register_view(page, auth)` in `views.py`, sharing `_auth_view`: a dark screen (`theme.AUTH_*` tokens) with a translucent card, small labels above compact fields and a full-width blue button. The design is ported from `flet/learn/animated_login.py` to the flet 1.0 API.
+- `AnimatedBackground` in `animated_background.py`: 50 dots at random positions that fade in and out. All dots change in one batched update per 0.6 s tick, not one update per dot, which keeps server-to-browser traffic low in this server-rendered app. The loop starts in `did_mount` and stops in `will_unmount`, so nothing keeps running after you leave the screen.
 - `shared/ui.py` helpers: `navigate`, `show_message`.
 
 ## 5. Services/API
@@ -44,4 +45,4 @@ State is the `ApiClient` token pair, one client per browser session (created in 
 Unit tests cover `validation.py`, `AuthService` and `ApiClient` (no network). Views are checked by a build smoke check under flet 1.0.3 and by the manual end-to-end checklist.
 
 ## 11. Future Improvements
-Persist sessions safely across restarts, rate-limit feedback, password reveal policy, account deletion.
+Persist sessions safely across restarts, rate-limit feedback, password reveal policy, account deletion. Consider pausing the background animation for users who prefer reduced motion.

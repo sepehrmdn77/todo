@@ -15,3 +15,10 @@ PANEL_WIDTH = 400
 PANEL_HEIGHT = 850
 DRAWER_PANEL_WIDTH = 120
 AVATAR_IMAGE = "images/ghand.jpg"
+
+# Auth screens (dark, animated) — design from flet/learn/animated_login.py
+AUTH_BG = "#0E1117"
+AUTH_TEXT = "white"
+AUTH_MUTED = "white70"
+AUTH_ACCENT = "blue"
+AUTH_DOT_COLORS = ("blue", "white")
