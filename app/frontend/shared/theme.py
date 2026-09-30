@@ -3,6 +3,7 @@
 BG = "#FFDEF1"      # outer page and cards
 FG = "#97b4ff"      # main panel
 PINK = "#FF3EA5"    # accents, progress, primary actions
+PURPLE = "#BA55D3"  # for create task button
 TEXT = "black"
 MUTED = "black54"
 TRACK = "black12"

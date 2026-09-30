@@ -101,7 +101,7 @@ class HomeView:
         )
 
     def _task_row(self, task: Task) -> ft.Control:
-        accent = theme.CATEGORY_COLORS.get(task.category or "", theme.UNCATEGORIZED_COLOR)
+        accent = theme.CATEGORY_COLORS.get(task.category or "", theme.PURPLE)
         checkbox = ft.Checkbox(
             value=task.is_completed,
             shape=ft.CircleBorder(),
