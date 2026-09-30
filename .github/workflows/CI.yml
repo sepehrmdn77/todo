@@ -9,46 +9,35 @@ on:
     branches: [main]
 
 jobs:
-  test-and-lint:
+  lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 5
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install flake8 pytest
-
-      - name: creating .env file
-        run: |
-          echo "SQLALCHEMY_DATABASE_URL=sqlite:///:memory:" >> .env
-          echo "JWT_SECRET_KEY=test" >> .env
-
-
+      - name: Install flake8
+        run: pip install flake8==7.1.1
       - name: Lint with flake8
         run: |
-          echo "Linting the code..."
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+  backend-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: app/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/backend/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Run tests
-        run: |
-          echo "Running tests with pytest..."
-          pytest --disable-warnings -v
+        run: python -m pytest --disable-warnings -v

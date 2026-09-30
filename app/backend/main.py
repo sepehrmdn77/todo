@@ -1,24 +1,21 @@
+import logging
+import time
 from contextlib import asynccontextmanager
+from typing import Any, Optional
 
-from fastapi import FastAPI, Response, Request, HTTPException, status
-
+from fastapi import FastAPI, Request, Response, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from core.config import settings
+from pages.routes import router as pages_routes
+from tasks.routes import router as tasks_routes
+from users.routes import router as users_routes
 
-from fastapi.middleware.cors import CORSMiddleware
-
-from backend.tasks.routes import router as tasks_routes
-
-from backend.users.routes import router as users_routes
-
-from backend.pages.routes import router as pages_routes
-
-import time
-
+logger = logging.getLogger("todo")
 
 tags_metadata = [
     {
@@ -35,9 +32,9 @@ tags_metadata = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan"""
-    print("Application startup")
+    logger.info("Application startup")
     yield
-    print("Application shutdown")
+    logger.info("Application shutdown")
 
 
 app = FastAPI(
@@ -64,7 +61,6 @@ app.include_router(users_routes)
 app.include_router(pages_routes)
 
 
-
 @app.post("/set-cookie", tags=["Cookie management"])
 def set_cookie(response: Response):
     response.set_cookie(key="test", value="something")
@@ -87,28 +83,35 @@ async def add_process_time_header(request: Request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+def error_response(
+    status_code: int, detail: Any, headers: Optional[dict[str, str]] = None
+) -> JSONResponse:
+    """Uniform error body used by every handler: {"error", "status_code", "detail"}."""
+    return JSONResponse(
+        status_code=status_code,
+        content={"error": True, "status_code": status_code, "detail": detail},
+        headers=headers,
+    )
+
+
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
-    print(exc.__dict__)
-    error_response = {
-        "error": True,
-        "status_code": exc.status_code,
-        "detail": exc.detail
-    }
-    return JSONResponse(status_code =exc.status_code, content=error_response)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return error_response(exc.status_code, exc.detail, getattr(exc, "headers", None))
+
 
 @app.exception_handler(RequestValidationError)
-async def http_validation_handler(request, exc):
-    print(exc.__dict__)
-    error_response = {
-        "error": True,
-        "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-        "detail": exc.errors()
-    }
-    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.info("Validation failed for %s %s", request.method, request.url.path)
+    # Drop "input"/"ctx": they can contain submitted secrets (e.g. passwords).
+    errors = [
+        {key: value for key, value in error.items() if key not in ("input", "ctx")}
+        for error in exc.errors()
+    ]
+    return error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, jsonable_encoder(errors))
