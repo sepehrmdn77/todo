@@ -7,10 +7,10 @@ from custom_checkbox import CustomCheckBox
 
 
 def main(page: Page):
-    BG = "#FF7ED4"
+    BG = "#FFDEF1"
     FWG = "#97b4ff"
-    FG = "#6420AA"
-    PINK = "#FF3EA5"
+    FG = "#97b4ff"
+    PINK = "#FFDEF1"
 
     page.window.width=420
     page.window.height=870
@@ -88,8 +88,8 @@ def main(page: Page):
             page.update()
 
     user_task_input = TextField(
-                            label=Text(value="Task name",color='WHITE'),
-                            label_style=TextStyle(color="WHITE"),
+                            label=Text(value="Task name",color='BLACK'),
+                            label_style=TextStyle(color="BLACK"),
                             border_color="transparent",
                             )
 
@@ -120,10 +120,10 @@ def main(page: Page):
             affinity=TileAffinity.PLATFORM,
             maintain_state=True,
             collapsed_text_color=Colors.WHITE,
-            text_color=Colors.WHITE,
-            controls=[Divider(color='white',height=1,opacity=0.5),
+            text_color=Colors.BLACK,
+            controls=[Divider(color='BLACK',height=1,opacity=0.5),
                       ListTile(title=Container(
-                    content=Text("University"),
+                    content=Text(value="University", color="BLACK"),
                     margin=10,
                     padding=10,
                     alignment=Alignment.CENTER,
@@ -133,9 +133,9 @@ def main(page: Page):
                     ink=True,
                     on_click=lambda _: print("Clickable transparent with Ink clicked!"),
                     )
-                ),Divider(color='white',height=1,opacity=0.5),
+                ),Divider(color='BLACK',height=1,opacity=0.5),
                       ListTile(title=Container(
-                    content=Text("Finnish"),
+                    content=Text(value="Finnish", color="BLACK"),
                     margin=10,
                     padding=10,
                     alignment=Alignment.CENTER,
@@ -144,9 +144,9 @@ def main(page: Page):
                     border_radius=10,
                     ink=True,
                     on_click=lambda _: print("Clickable transparent with Ink clicked!"),
-                    )),Divider(color='white',height=1,opacity=0.5),
+                    )),Divider(color='BLACK',height=1,opacity=0.5),
                       ListTile(title=Container(
-                    content=Text("Painting"),
+                    content=Text(value="Painting", color="BLACK"),
                     margin=10,
                     padding=10,
                     alignment=Alignment.CENTER,
@@ -203,7 +203,7 @@ def main(page: Page):
                         Container(
                             width=160,
                             height=5,
-                            bgcolor="white12",
+                            bgcolor="black12",
                             border_radius=20,
                             padding=Padding.only(right=i * 30),
                             content=Container(
@@ -295,7 +295,7 @@ def main(page: Page):
                             "Templates",
                             size=15,
                             weight=FontWeight.W_300,
-                            color="white",
+                            color="black",
                             font_family="poppins",
                         ),
                     ]
@@ -308,7 +308,7 @@ def main(page: Page):
                             "Templates",
                             size=15,
                             weight=FontWeight.W_300,
-                            color="white",
+                            color="black",
                             font_family="poppins",
                         ),
                     ]
@@ -321,7 +321,7 @@ def main(page: Page):
                             "Templates",
                             size=15,
                             weight=FontWeight.W_300,
-                            color="white",
+                            color="black",
                             font_family="poppins",
                         ),
                     ]
