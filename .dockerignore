@@ -1,0 +1,13 @@
+.git
+.github
+.env
+.remember
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+app/backend/tests
+app/frontend/tests
+app/frontend/storage
+postgres
+docs
+agentlog.md

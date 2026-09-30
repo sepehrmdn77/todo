@@ -132,5 +132,6 @@ postgres/
 *.db
 *.sqlite3
 ./alembic/
-alembic.ini
+# alembic.ini is tracked (app/backend/alembic.ini); it holds no secrets
+!app/backend/alembic.ini
 app/alembic

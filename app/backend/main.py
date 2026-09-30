@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.config import settings
+from health.routes import router as health_routes
 from pages.routes import router as pages_routes
 from tasks.entities import InvalidTaskError, TaskNotFoundError
 from tasks.routes import router as tasks_routes
@@ -60,6 +61,7 @@ app = FastAPI(
 app.include_router(tasks_routes)
 app.include_router(users_routes)
 app.include_router(pages_routes)
+app.include_router(health_routes)
 
 
 @app.post("/set-cookie", tags=["Cookie management"])

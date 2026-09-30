@@ -77,4 +77,4 @@ Validation happens in two steps.
 ## 10. Future Improvements
 - Pagination controls in the UI (the API already supports `limit` and `offset`).
 - User-defined categories instead of the fixed set.
-- Alembic migration for the `category` column and `user_id` constraints on existing databases.
+- Data migration for existing databases: the initial Alembic revision (`0001_initial_schema`) creates the full schema on an empty database only; future schema changes go in new revisions (see `docs/runbooks/backend/backend.md`).
