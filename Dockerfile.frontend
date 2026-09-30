@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -13,11 +13,32 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN useradd --uid 1000 --no-create-home --shell /usr/sbin/nologin appuser
 COPY --chown=appuser:appuser app/frontend .
-USER appuser
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD python -c "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3000/', timeout=4).status == 200 else 1)"
+
+
+# Dev-only: serve the app to the Flet iOS app on the LAN (`flet run --ios`, port 8551, hot reload).
+# Built only via the compose "ios" profile (target: ios).
+FROM base AS ios
+
+RUN pip install --no-cache-dir flet-cli==1.0.3 \
+    && mkdir -p /app/.flet && chown appuser:appuser /app/.flet   # flet run keeps its storage here
+USER appuser
+
+EXPOSE 8551
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8551/app/main.py', timeout=4).status == 200 else 1)"
+
+CMD ["flet", "run", "--ios", "--host", "0.0.0.0", "--port", "8551", "main.py"]
+
+
+# Default target (last stage): the production web UI on port 3000.
+FROM base AS web
+
+USER appuser
 
 CMD ["python", "main.py"]

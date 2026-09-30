@@ -19,3 +19,12 @@
 - Symptom: browser shows nothing.
 - Cause: the Flet server is bound to localhost inside the container.
 - Fix: set `FLET_SERVER_IP=0.0.0.0` and check `docker logs frontend`.
+
+## Flet iOS app can't connect to `frontend-ios`
+- Symptom: the Flet app spins or reports it can't reach `http://<LAN-IP>:8551/app/main.py`.
+- Cause: the phone isn't on the same network, the QR code from `docker logs frontend-ios` was used (it has the container's 172.x IP), or Docker runs inside WSL2 with NAT networking so port 8551 isn't reachable from the LAN.
+- Fix: use the host's LAN IP; on WSL2 add the `netsh interface portproxy` rule and firewall rule from `docs/runbooks/frontend/frontend.md` (re-run the portproxy after reboot, the WSL IP changes); check `curl http://<LAN-IP>:8551/app/main.py` from another machine.
+
+## `PermissionError: '/app/.flet'` in `frontend-ios`
+- Cause: `flet run` writes its storage under `/app/.flet` but runs as the non-root `appuser`.
+- Fix: the `ios` stage creates `/app/.flet` owned by `appuser`; rebuild with `docker compose --profile ios up -d --build frontend-ios`.

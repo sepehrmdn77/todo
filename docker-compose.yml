@@ -71,6 +71,28 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Dev-only: `docker compose --profile ios up -d --build frontend-ios`, then open
+  # http://<your-LAN-IP>:8551/app/main.py in the Flet iOS app (see docs/runbooks/frontend/frontend.md).
+  frontend-ios:
+    profiles: ["ios"]
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: ios
+    container_name: frontend-ios
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://backend:8000}
+    ports:
+      - "8551:8551"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - public_net
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   internal_net:
     driver: bridge
