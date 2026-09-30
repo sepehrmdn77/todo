@@ -12,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.config import settings
 from pages.routes import router as pages_routes
+from tasks.entities import InvalidTaskError, TaskNotFoundError
 from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 
@@ -115,3 +116,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         for error in exc.errors()
     ]
     return error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, jsonable_encoder(errors))
+
+
+@app.exception_handler(TaskNotFoundError)
+async def task_not_found_handler(request: Request, exc: TaskNotFoundError):
+    return error_response(status.HTTP_404_NOT_FOUND, "Task not found")
+
+
+@app.exception_handler(InvalidTaskError)
+async def invalid_task_handler(request: Request, exc: InvalidTaskError):
+    return error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc))
